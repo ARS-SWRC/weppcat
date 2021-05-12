@@ -1,0 +1,7 @@
+Connecticut
+<input type="hidden" name="state" value="ct">
+<Select name="station" size="15">
+<OPTION VALUE="CT061762" selected> DANBURY CT
+<OPTION VALUE="CT064767"> MIDDLETOWN 4 W CT
+<OPTION VALUE="CT067970"> STAMFORD 5 N CT
+</select>

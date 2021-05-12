@@ -1,0 +1,6 @@
+Delaware
+<input type="hidden" name="state" value="de">
+<Select name="station" size="15">
+<OPTION VALUE="DE073570" selected> GEORGETOWN 5 SW DE
+<OPTION VALUE="DE075852"> MIDDLETOWN 2 S DE
+</select>

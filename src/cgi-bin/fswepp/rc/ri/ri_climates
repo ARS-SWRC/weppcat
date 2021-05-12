@@ -1,0 +1,5 @@
+Rhode Island
+<input type="hidden" name="state" value="ri">
+<Select name="station" size="15">
+<OPTION VALUE="RI374266" selected> KINGSTON RI
+</select>

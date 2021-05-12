@@ -1,0 +1,98 @@
+#! /usr/bin/perl
+#! /fsapps/fssys/bin/perl
+
+# climate.cli  --  disguised perl script to generate & return climate
+
+# DEH 06/14/2000 fix working directory path for unix [modify]
+# DEH 01/24/2001 unlink (erase) .cli file after download
+# At some point this file was greatly changed in what it did, making it mostly dead code.
+# I have cleaned out the dead code. ELA 4/21/2008
+# The whole file should probably be elimated, but I'm not going that far yet. As it stands
+# this file just reads parameters and uses them to call modpar.pl
+
+#  usage:
+#    <form ACTION="http://host/cgi-bin/fswepp/rc/climate.cli" method="post">
+#  parameters:
+#    'state'         
+#    'station'       
+#    'comefrom'
+#    'units'		# 'm' or 'ft'
+#  reads:
+#    ../platform
+#  calls:
+#    exec "perl ../rc/modpar.pl $useaf $CL $units $state $comefrom"
+
+#  FSWEPP, USDA Forest Service, Rocky Mountain Research Station, Soil & Water Engineering
+#  Science by Bill Elliot et alia                                      Code by David Hall
+#  19 October 1999
+
+&ReadParse(*parameters); 
+$state=$parameters{'state'};         
+$station=$parameters{'station'};
+$useaf=$parameters{'useaf'}; 
+$comefrom=$parameters{'comefrom'};
+$units=$parameters{'units'};
+$workingdir=$parameters{'workingdir'};
+if ($workingdir eq "") {$workingdir = "damn"}
+
+$platform="pc";
+if (-e "../platform") {
+  open Platform, "<../platform";
+  $platform=lc(<Platform>);
+  chomp $platform;
+  close Platform;
+}
+
+#  verify filename entry no .. ~ leading / etc.
+#  verify state entry AL..WY or whatever
+if ($state eq "") {$state = "id"}
+if ($station eq "") {$station = "ID108080"}
+
+# store valid states (plus) in array @states and
+# construct a hash (Wall, Programming Perl, p. 537)
+@states = ('al','az','ar','ca','co','ct','de','fl','ga','id',
+           'il','in','ia','ks','ky','la','me','md','ma','mi',
+           'mn','ms','mo','mt','ne','nv','nh','nj','nm','ny',
+           'nc','nd','oh','ok','or','pa','ri','sc','sd','tn',
+           'tx','ut','vt','va','wa','wv','wi','wy','dc','ak',
+           'hi','pr','pi','vi','if','nonus');
+for (@states) {$states{$_}++;}
+# $_ contains a keyword (state) if $states{$_} is non-zero.
+# for non perl people note states is two different structures, an array and a hash
+# I didn't choose this scheme. ELA
+
+if ($states{$state} && $station =~ /^[\w.]*$/) {      #seems not best way to check this ELA
+  $CL = $state . "/" . uc($state) . $station;
+  if ($platform eq "pc") { 
+    exec "perl ../rc/modpar.pl $workingdir $useaf $CL $units $state $comefrom"
+  }
+  else {
+    exec "../rc/modpar.pl $workingdir $useaf $CL $units $state $comefrom"
+  }
+}
+
+# --------------------------------------------------------
+
+sub ReadParse {
+
+# ReadParse -- from cgi-lib.pl (Steve Brenner) from Eric Herrmann's
+# "Teach Yourself CGI Programming With PERL in a Week" p. 131
+
+  local (*in) = @_ if @_;
+  local ($i, $loc, $key, $val);
+  if ($ENV{'REQUEST_METHOD'} eq "GET") {
+    $in = $ENV{'QUERY_STRING'};
+  } elsif ($ENV{'REQUEST_METHOD'} eq "POST") {
+    read(STDIN,$in,$ENV{'CONTENT_LENGTH'});
+  }
+  @in = split(/&/,$in);
+  foreach $i (0 .. $#in) {
+    $in[$i] =~ s/\+/ /g;    # Convert pluses to spaces
+    ($key, $val) = split(/=/,$in[$i],2);   # Split into key and value
+    $key =~ s/%(..)/pack("c",hex($1))/ge;  # Convert %XX from hex numbers to alphanumeric
+    $val =~ s/%(..)/pack("c",hex($1))/ge;
+    $in{$key} .= "\0" if (defined($in{$key}));  # \0 is the multiple separator
+    $in{$key} .= $val;
+  }
+  return 1;
+ }
